@@ -1,0 +1,241 @@
+﻿<UserControl
+    x:Class="WpfApp1.Views.DetectionView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="clr-namespace:CalcBinding;assembly=CalcBinding"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:local="clr-namespace:WpfApp1.Views"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:model="clr-namespace:WpfApp1.Models"
+    xmlns:prism="http://prismlibrary.com/"
+    xmlns:viewmodel="clr-namespace:WpfApp1.ViewModels"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    prism:ViewModelLocator.AutoWireViewModel="True"
+    mc:Ignorable="d">
+    <Grid x:Name="main" Background="#c7c7c7">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="8*" />
+        </Grid.RowDefinitions>
+        <materialDesign:DrawerHost
+            Grid.RowSpan="2"
+            Panel.ZIndex="1"
+            IsRightDrawerOpen="{Binding RightDrawerOpen, Mode=TwoWay}">
+            <materialDesign:DrawerHost.RightDrawerContent>
+                <StackPanel MinWidth="300" Background="#252526">
+                    <TreeView Foreground="White" ItemsSource="{Binding AllPapers}">
+                        <TreeView.Resources>
+                            <Style BasedOn="{StaticResource MaterialDesignTreeViewItem}" TargetType="TreeViewItem">
+                                <Setter Property="materialDesign:TreeViewAssist.ExpanderSize" Value="32" />
+                                <Setter Property="materialDesign:TreeViewAssist.ShowSelection" Value="False" />
+                            </Style>
+                            <HierarchicalDataTemplate DataType="{x:Type viewmodel:PaperCategory}" ItemsSource="{Binding Papers}">
+                                <StackPanel Width="auto" Orientation="Horizontal">
+                                    <TextBlock Margin="3,10" Text="{Binding Name}" />
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                            <DataTemplate DataType="{x:Type model:Paper}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button
+                                        Margin="0,0,0,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Content="{Binding Name}"
+                                        Foreground="White"
+                                        Style="{StaticResource MaterialDesignPaperLightButton}"
+                                        ToolTip="{Binding Director}">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="Click">
+                                                <i:InvokeCommandAction Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.LoadDBCommand}" CommandParameter="{Binding ID}" />
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </TreeView.Resources>
+                    </TreeView>
+                </StackPanel>
+            </materialDesign:DrawerHost.RightDrawerContent>
+        </materialDesign:DrawerHost>
+        <materialDesign:DialogHost Grid.Row="1" IsOpen="{Binding ResultDialogOpen}">
+            <materialDesign:DialogHost.DialogContent>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" MaxWidth="{Binding ActualWidth, ElementName=main}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBox
+                            Grid.Column="0"
+                            MinWidth="100"
+                            Margin="10"
+                            materialDesign:HintAssist.Hint="源文档"
+                            IsReadOnly="True"
+                            Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                            Text="{Binding ResultSrc}"
+                            TextWrapping="Wrap"
+                            VerticalScrollBarVisibility="Auto" />
+                        <TextBox
+                            Grid.Column="1"
+                            MinWidth="100"
+                            Margin="10"
+                            materialDesign:HintAssist.Hint="对比文档"
+                            IsReadOnly="True"
+                            Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                            Text="{Binding ResultSus}"
+                            TextWrapping="Wrap"
+                            VerticalScrollBarVisibility="Auto" />
+                    </Grid>
+                    <Button
+                        Grid.Row="1"
+                        Command="{Binding CloseResultDialogCommand}"
+                        Content="退出" />
+                </Grid>
+            </materialDesign:DialogHost.DialogContent>
+        </materialDesign:DialogHost>
+        <materialDesign:DialogHost Grid.Row="1" IsOpen="{Binding ProcessDialogOpen}">
+            <materialDesign:DialogHost.DialogContent>
+                <StackPanel Margin="16">
+                    <ProgressBar
+                        Margin="16"
+                        HorizontalAlignment="Center"
+                        IsIndeterminate="True"
+                        Style="{StaticResource MaterialDesignCircularProgressBar}"
+                        Value="0" />
+                </StackPanel>
+            </materialDesign:DialogHost.DialogContent>
+        </materialDesign:DialogHost>
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center">
+            <Button
+                Margin="10"
+                Background="#dd2c00"
+                Content="查重"
+                Style="{StaticResource MaterialDesignRaisedLightButton}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="Click">
+                        <i:InvokeCommandAction Command="{Binding DetectCommand}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </Button>
+        </StackPanel>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <materialDesign:TransitioningContent Grid.Column="0" OpeningEffect="{materialDesign:TransitionEffect SlideInFromTop}">
+                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                    <Button
+                        Margin="10"
+                        Background="Black"
+                        Content="从写作中导入"
+                        Style="{StaticResource MaterialDesignRaisedLightButton}">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <i:InvokeCommandAction Command="{Binding LoadWritingCommand}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </Button>
+                    <Button
+                        Margin="10"
+                        Background="Black"
+                        Content="从文件中导入"
+                        Style="{StaticResource MaterialDesignRaisedLightButton}">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <i:InvokeCommandAction Command="{Binding OpenFileCommand}" CommandParameter="0" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </Button>
+                </StackPanel>
+            </materialDesign:TransitioningContent>
+            <materialDesign:TransitioningContent Grid.Column="1" OpeningEffect="{materialDesign:TransitionEffect SlideInFromTop}">
+                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                    <Button
+                        Margin="10"
+                        Background="Black"
+                        Command="{Binding AccessDBCommand}"
+                        Content="从数据库中导入"
+                        Style="{StaticResource MaterialDesignRaisedLightButton}" />
+                    <Button
+                        Margin="10"
+                        Background="Black"
+                        Content="从文件中导入"
+                        Style="{StaticResource MaterialDesignRaisedLightButton}">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <i:InvokeCommandAction Command="{Binding OpenFileCommand}" CommandParameter="1" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </Button>
+                </StackPanel>
+            </materialDesign:TransitioningContent>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <materialDesign:TransitioningContent Grid.Column="0" OpeningEffect="{materialDesign:TransitionEffect SlideInFromBottom}">
+                <StackPanel
+                    x:Name="stackPanel1"
+                    Margin="20,0,20,0"
+                    Background="#ffffff">
+                    <TextBox
+                        x:Name="src"
+                        MaxHeight="{c:Binding ActualHeight-50,
+                                              ElementName=stackPanel1}"
+                        Margin="20"
+                        HorizontalAlignment="Stretch"
+                        materialDesign:HintAssist.Hint="源文档"
+                        AcceptsReturn="True"
+                        AcceptsTab="True"
+                        BorderThickness="0,0,0,0"
+                        DataContext="{Binding Src}"
+                        FontSize="15"
+                        Foreground="Black"
+                        HorizontalScrollBarVisibility="Auto"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        Text="{Binding Path=Content, Mode=TwoWay}"
+                        TextBlock.LineHeight="22.0"
+                        TextWrapping="Wrap"
+                        VerticalScrollBarVisibility="Auto" />
+                </StackPanel>
+            </materialDesign:TransitioningContent>
+            <materialDesign:TransitioningContent Grid.Column="1" OpeningEffect="{materialDesign:TransitionEffect SlideInFromBottom}">
+                <StackPanel
+                    x:Name="stackPanel2"
+                    Margin="20,0,20,0"
+                    Background="#ffffff">
+                    <TextBox
+                        x:Name="sus"
+                        MaxHeight="{c:Binding ActualHeight-50,
+                                              ElementName=stackPanel2}"
+                        Margin="20"
+                        HorizontalAlignment="Stretch"
+                        materialDesign:HintAssist.Hint="对比文档"
+                        AcceptsReturn="True"
+                        AcceptsTab="True"
+                        BorderThickness="0,0,0,0"
+                        DataContext="{Binding Sus}"
+                        FontSize="15"
+                        Foreground="Black"
+                        HorizontalScrollBarVisibility="Auto"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        Text="{Binding Path=Content, Mode=TwoWay}"
+                        TextBlock.LineHeight="22.0"
+                        TextWrapping="Wrap"
+                        VerticalScrollBarVisibility="Auto" />
+                </StackPanel>
+            </materialDesign:TransitioningContent>
+        </Grid>
+
+    </Grid>
+</UserControl>
